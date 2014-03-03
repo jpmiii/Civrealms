@@ -1,19 +1,38 @@
 package com.jpmiii.Civrealms;
 
-import java.util.Iterator;
+//import java.util.Iterator;
 
+//import org.bukkit.Material;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Damageable;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
+//import org.bukkit.inventory.ItemStack;
+//import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.jpmiii.Hero1000.Hero1000Listener;
-import com.jpmiii.Hero1000.Hero1000Task;
+import com.jpmiii.Civrealms.CivrealmsTask;
 import com.jpmiii.Hero1000.Hero1000Trait;
 
+
+
+
+import net.citizensnpcs.Citizens;
+import net.citizensnpcs.api.npc.NPC;
 import net.milkbowl.vault.permission.Permission;
 
 public class Civrealms extends JavaPlugin implements Listener {
@@ -27,15 +46,9 @@ public class Civrealms extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(
 				this, this);
 		setupPermissions();
+		BukkitTask t = new CivrealmsTask(this).runTaskTimer(this, 6000, 6000);
 
-
-		if (getServer().getPluginManager().getPlugin("Citizens") == null
-				|| getServer().getPluginManager().getPlugin("Citizens")
-						.isEnabled() == false) {
-			getLogger().severe("Citizens 2.0 not found or not enabled");
-			getServer().getPluginManager().disablePlugin(this);
-			return;
-		}
+/*
 
 		final Iterator<Recipe> recipes = getServer().recipeIterator();
 		Recipe recipe;
@@ -50,7 +63,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 
 			if (result.getType() == Material.ENCHANTMENT_TABLE)
 				recipes.remove();
-		}
+		}*/
 
 
 	}
@@ -65,6 +78,102 @@ public class Civrealms extends JavaPlugin implements Listener {
 	public void onDisable() {
 
 		getLogger().info("onDisable has been invoked!");
+	}
+	
+	@EventHandler(priority = EventPriority.HIGH)
+	public void jail(EntityDamageByEntityEvent event) {
+		if ((event.getEntityType() == EntityType.PLAYER)
+				&& (event.getDamager().getType() == EntityType.PLAYER)
+				&& ((((Damageable) event.getEntity()).getHealth() - event
+						.getDamage()) < 0)) {
+
+			ItemStack inhand = ((Player) event.getDamager()).getItemInHand();
+			if (inhand.hasItemMeta()) {
+				String iname = inhand.getItemMeta().getDisplayName();
+				Location jloc = null;
+				if (iname.equalsIgnoreCase("freetown_jail")) jloc = new Location(this.getServer().getWorld("newworld"), -902.0, 65.0, 1570.0);
+				if (iname.equalsIgnoreCase("otherplace")) jloc = new Location(this.getServer().getWorld("newworld_nether"), 13.0, 33.0, -113.0);
+	
+				if (jloc != null) {
+					event.setCancelled(true);
+					((Damageable) event.getEntity()).setHealth(20.0);
+					for (ItemStack is : ((Player) event.getEntity()).getInventory().getContents()){
+						if (is != null) {
+							if (is.getType() != Material.AIR) event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), is);
+						}
+					}
+					for (ItemStack is2 : ((Player) event.getEntity()).getInventory().getArmorContents()){
+						if (is2 != null) {
+							if (is2.getType() != Material.AIR) event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), is2);
+						}
+					}
+					((Player) event.getEntity()).getInventory().clear();
+					((Player) event.getEntity()).getInventory().setArmorContents(null);
+					((Player) event.getEntity()).setBedSpawnLocation(jloc, true);
+					
+					
+					
+					event.getEntity().teleport(jloc);
+					
+				}
+			}
+
+		}
+	}
+
+	public boolean onCommand(CommandSender sender, Command cmd, String label,
+			String[] args) {
+
+
+		if (cmd.getName().equalsIgnoreCase("civ")) {
+			// doSomething
+
+			if (!(sender instanceof Player)) {
+				this.reloadConfig();
+
+				getLogger().info("config reloaded");
+				return true;
+			}
+
+			Player player = (Player) sender;
+			if (args.length > 0) {
+
+				if (args[0].equalsIgnoreCase("end")) {
+					if (player.isOp()) {
+						World nether = Bukkit.getWorld(this.getConfig()
+								.getString("worldName") + "_the_end");
+						Location loc = nether.getSpawnLocation();
+						((Player) sender).teleport(loc);
+						return true;
+					}
+					return true;
+				}
+				if (args[0].equalsIgnoreCase("nether")) {
+					if (player.isOp()) {
+						World nether = Bukkit.getWorld(this.getConfig()
+								.getString("worldName") + "_nether");
+						Location loc = nether.getSpawnLocation();
+						((Player) sender).teleport(loc);
+						return true;
+					}
+					return true;
+				}
+				if (args[0].equalsIgnoreCase("world")) {
+					if (player.isOp()) {
+						World nether = Bukkit.getWorld(this.getConfig()
+								.getString("worldName"));
+						Location loc = nether.getSpawnLocation();
+						((Player) sender).teleport(loc);
+						return true;
+					}
+					return true;
+				}
+
+			}
+
+		}
+
+		return false;
 	}
 
 }

@@ -3,7 +3,7 @@ main: com.jpmiii.Civrealms.Civrealms
 version: 0.1.2
 depend: [Vault]
 commands:
-   reload:
+   civ:
       description: reloads config
       usage: /reload
       permission-message: you cant do that
