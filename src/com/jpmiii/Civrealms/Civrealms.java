@@ -4,7 +4,7 @@ package com.jpmiii.Civrealms;
 
 //import org.bukkit.Material;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -12,12 +12,13 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.HumanEntity;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 //import org.bukkit.inventory.ItemStack;
 //import org.bukkit.inventory.Recipe;
@@ -26,13 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.jpmiii.Civrealms.CivrealmsTask;
-import com.jpmiii.Hero1000.Hero1000Trait;
 
-
-
-
-import net.citizensnpcs.Citizens;
-import net.citizensnpcs.api.npc.NPC;
 import net.milkbowl.vault.permission.Permission;
 
 public class Civrealms extends JavaPlugin implements Listener {
@@ -91,8 +86,8 @@ public class Civrealms extends JavaPlugin implements Listener {
 			if (inhand.hasItemMeta()) {
 				String iname = inhand.getItemMeta().getDisplayName();
 				Location jloc = null;
-				if (iname.equalsIgnoreCase("freetown_jail")) jloc = new Location(this.getServer().getWorld("newworld"), -902.0, 65.0, 1570.0);
-				if (iname.equalsIgnoreCase("otherplace")) jloc = new Location(this.getServer().getWorld("newworld_nether"), 13.0, 33.0, -113.0);
+				if (iname.equalsIgnoreCase("freetown_jail")) jloc = new Location(this.getServer().getWorld("world"), -902.0, 65.0, 1570.0);
+				if (iname.equalsIgnoreCase("otherplace")) jloc = new Location(this.getServer().getWorld("world_nether"), 6000.0, 33.0, 0.0);
 	
 				if (jloc != null) {
 					event.setCancelled(true);
@@ -115,6 +110,28 @@ public class Civrealms extends JavaPlugin implements Listener {
 					
 					event.getEntity().teleport(jloc);
 					
+				}
+			}
+
+		}
+	}
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void spawnmove(PlayerRespawnEvent event) {
+		if (!event.isBedSpawn()) {
+			Location curloc = event.getRespawnLocation();
+			boolean look =true;
+			while (look) {
+				World wld = getServer().getWorld(
+						this.getConfig().getString("worldName"));
+				Integer xloc = ((int) (Math.random() * 200 - 100 + curloc
+						.getX()));
+				Integer zloc = ((int) (Math.random() * 200 - 100 + curloc
+						.getZ()));
+				Integer yloc = wld.getHighestBlockYAt(xloc, zloc);
+				if (wld.getBlockAt(xloc, yloc-1, zloc).getType() == Material.GRASS) {
+					look = false;
+					wld.setSpawnLocation(xloc, yloc, zloc);
+					this.getLogger().info("spawn moved");
 				}
 			}
 
