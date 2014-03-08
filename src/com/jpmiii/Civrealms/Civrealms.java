@@ -3,6 +3,11 @@ package com.jpmiii.Civrealms;
 //import java.util.Iterator;
 
 //import org.bukkit.Material;
+
+import java.util.HashMap;
+
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 
 import org.bukkit.Location;
@@ -32,12 +37,14 @@ import net.milkbowl.vault.permission.Permission;
 
 public class Civrealms extends JavaPlugin implements Listener {
 	public Permission perms = null;
-
+	public Map<String, Object> jailList = new HashMap<String, Object>();
+	public Map<String, Object> jailPlayers = new HashMap<String, Object>();
 	public void onEnable() {
 		// getLogger().info("onEnable has been invoked!");
 
 		this.saveDefaultConfig();
-
+		jailList =  this.getConfig().getConfigurationSection("jailList").getValues(false);
+		jailPlayers =  this.getConfig().getConfigurationSection("jailPlayers").getValues(false);
 		getServer().getPluginManager().registerEvents(
 				this, this);
 		setupPermissions();
@@ -75,44 +82,49 @@ public class Civrealms extends JavaPlugin implements Listener {
 		getLogger().info("onDisable has been invoked!");
 	}
 	
+
 	@EventHandler(priority = EventPriority.HIGH)
 	public void jail(EntityDamageByEntityEvent event) {
 		if ((event.getEntityType() == EntityType.PLAYER)
 				&& (event.getDamager().getType() == EntityType.PLAYER)
 				&& ((((Damageable) event.getEntity()).getHealth() - event
 						.getDamage()) < 0)) {
+			if (((Player)event.getDamager()).hasPermission("civ.jail")) {
 
-			ItemStack inhand = ((Player) event.getDamager()).getItemInHand();
-			if (inhand.hasItemMeta()) {
-				String iname = inhand.getItemMeta().getDisplayName();
-				Location jloc = null;
-				if (iname.equalsIgnoreCase("freetown_jail")) jloc = new Location(this.getServer().getWorld("world"), -902.0, 65.0, 1570.0);
-				if (iname.equalsIgnoreCase("otherplace")) jloc = new Location(this.getServer().getWorld("world_nether"), 6000.0, 33.0, 0.0);
-	
-				if (jloc != null) {
-					event.setCancelled(true);
-					((Damageable) event.getEntity()).setHealth(20.0);
-					for (ItemStack is : ((Player) event.getEntity()).getInventory().getContents()){
-						if (is != null) {
-							if (is.getType() != Material.AIR) event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), is);
+				ItemStack inhand = ((Player) event.getDamager()).getItemInHand();
+				if (inhand.hasItemMeta()) {
+					String iname = inhand.getItemMeta().getDisplayName();
+					Location jloc = null;
+					if (jailList.containsKey(iname)) {
+						String[] locl = ((String)jailList.get(iname)).split(",");
+						if (Integer.parseInt(locl[4]) >= this.getConfig().getInt("votes")) {
+
+
+						jloc = new Location(this.getServer().getWorld(locl[0]),Float.parseFloat(locl[1]), Float.parseFloat(locl[2]), Float.parseFloat(locl[3]));
+						event.setCancelled(true);
+						((Damageable) event.getEntity()).setHealth(20.0);
+						for (ItemStack is : ((Player) event.getEntity()).getInventory().getContents()){
+							if (is != null) {
+								if (is.getType() != Material.AIR) event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), is);
+							}
 						}
-					}
-					for (ItemStack is2 : ((Player) event.getEntity()).getInventory().getArmorContents()){
-						if (is2 != null) {
-							if (is2.getType() != Material.AIR) event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), is2);
+						for (ItemStack is2 : ((Player) event.getEntity()).getInventory().getArmorContents()){
+							if (is2 != null) {
+								if (is2.getType() != Material.AIR) event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), is2);
+							}
 						}
-					}
-					((Player) event.getEntity()).getInventory().clear();
-					((Player) event.getEntity()).getInventory().setArmorContents(null);
-					((Player) event.getEntity()).setBedSpawnLocation(jloc, true);
-					
-					
-					
-					event.getEntity().teleport(jloc);
-					
+						((Player) event.getEntity()).getInventory().clear();
+						((Player) event.getEntity()).getInventory().setArmorContents(null);
+						((Player) event.getEntity()).setBedSpawnLocation(jloc, true);
+
+
+
+						event.getEntity().teleport(jloc);
+
+
+					}}
 				}
 			}
-
 		}
 	}
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -140,13 +152,88 @@ public class Civrealms extends JavaPlugin implements Listener {
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label,
 			String[] args) {
+		if (cmd.getName().equalsIgnoreCase("jjail")) {
+			if (!(sender instanceof Player)) {
 
+				return true;
+			}	
+			Player player = (Player) sender;
+			if (args.length > 0) {
+				if (jailList.containsKey(args[0])) {
+					jailPlayers.put(player.getName(), args[0]);
+					
+					String Rem = "no";
+
+					for (String jailname : jailList.keySet()) {
+						int vcount = 0;
+						for (Object plvote : jailPlayers.values()) {
+							if (((String)plvote).equalsIgnoreCase(jailname)) vcount = vcount + 1;
+								
+							
+							this.getLogger().info(jailname + ": " + plvote +": "+ vcount);
+
+						}
+						if (vcount > 0){
+							String[] locl = ((String)jailList.get(jailname)).split(",");
+							jailList.put(jailname, locl[0] + "," + locl[1] + "," + locl[2] + "," + locl[3] + "," + vcount);
+							
+						} else {
+							Rem = jailname;
+							
+						}
+					}
+					if (!Rem.equalsIgnoreCase("no")) {
+						jailList.remove(Rem);
+							player.sendMessage("removed jail: " + Rem);
+					}
+					this.getConfig().createSection("jailList", jailList);
+					this.getConfig().createSection("jailPlayers", jailPlayers);
+					this.saveConfig();
+					//this.getLogger().info(args[0]);
+					player.sendMessage("voted for jail: " + args[0]);
+					return true;
+					
+
+
+				} else {
+					jailPlayers.put(player.getName(), args[0]);
+					jailList.put(args[0], player.getWorld().getName() +"," + player.getLocation().getBlockX() + "," + player.getLocation().getBlockY() +","+ player.getLocation().getBlockZ() + ",1");
+
+					for (String jailname : jailList.keySet()) {
+						int vcount = 0;
+						for (Object plvote : jailPlayers.values()) {
+							if (((String)plvote).equalsIgnoreCase(jailname)) vcount = vcount + 1;
+
+						}
+						if (vcount > 0){
+							String[] locl = ((String)jailList.get(jailname)).split(",");
+							jailList.put(jailname, locl[0] + "," + locl[1] + "," + locl[2] + "," + locl[3] + "," + vcount);
+							
+						} else {
+							jailList.remove(jailname);
+							player.sendMessage("removed jail: " + jailname);
+						}
+					}
+					this.getConfig().createSection("jailList", jailList);
+					this.getConfig().createSection("jailPlayers", jailPlayers);
+					this.saveConfig();
+					this.getLogger().info(args[0]);
+					player.sendMessage("added jail " + args[0]);
+					return true;
+
+				}
+			}
+
+		}
 
 		if (cmd.getName().equalsIgnoreCase("civ")) {
 			// doSomething
 
 			if (!(sender instanceof Player)) {
 				this.reloadConfig();
+				jailList =  this.getConfig().getConfigurationSection("jailList").getValues(false);
+				jailPlayers =  this.getConfig().getConfigurationSection("jailPlayers").getValues(false);
+
 
 				getLogger().info("config reloaded");
 				return true;

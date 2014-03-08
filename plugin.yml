@@ -7,3 +7,7 @@ commands:
       description: reloads config
       usage: /reload
       permission-message: you cant do that
+   jjail:
+      description: sets jail loc
+      usage: /jjail jailname
+      permission-message: you cant do that
