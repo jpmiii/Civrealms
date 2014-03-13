@@ -81,7 +81,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 
 		getLogger().info("onDisable has been invoked!");
 	}
-	
+	/*
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void jail(EntityDamageByEntityEvent event) {
@@ -126,7 +126,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 				}
 			}
 		}
-	}
+	} */
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void spawnmove(PlayerRespawnEvent event) {
 		if (!event.isBedSpawn()) {
@@ -135,9 +135,9 @@ public class Civrealms extends JavaPlugin implements Listener {
 			while (look) {
 				World wld = getServer().getWorld(
 						this.getConfig().getString("worldName"));
-				Integer xloc = ((int) (Math.random() * 200 - 100 + curloc
+				Integer xloc = ((int) (Math.random() * 190 - 100 + curloc
 						.getX()));
-				Integer zloc = ((int) (Math.random() * 200 - 100 + curloc
+				Integer zloc = ((int) (Math.random() * 190 - 100 + curloc
 						.getZ()));
 				Integer yloc = wld.getHighestBlockYAt(xloc, zloc);
 				if (wld.getBlockAt(xloc, yloc-1, zloc).getType() == Material.GRASS) {
@@ -159,7 +159,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 			}	
 			Player player = (Player) sender;
 			if (args.length > 0) {
-				if (jailList.containsKey(args[0])) {
+	/*			if (jailList.containsKey(args[0])) {
 					jailPlayers.put(player.getName(), args[0]);
 					
 					String Rem = "no";
@@ -221,7 +221,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 					player.sendMessage("added jail " + args[0]);
 					return true;
 
-				}
+				}*/
 			}
 
 		}
@@ -268,6 +268,14 @@ public class Civrealms extends JavaPlugin implements Listener {
 								.getString("worldName"));
 						Location loc = nether.getSpawnLocation();
 						((Player) sender).teleport(loc);
+						return true;
+					}
+					return true;
+				}
+				if (args[0].equalsIgnoreCase("setspawn")) {
+					if (player.isOp()) {
+						World wld = player.getWorld();
+						wld.setSpawnLocation(player.getLocation().getBlockX(),player.getLocation().getBlockY(),player.getLocation().getBlockZ());
 						return true;
 					}
 					return true;
