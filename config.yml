@@ -8,7 +8,7 @@ jailPlayers: {}
 worlds:
     world:
         enabled: true
-        overrideworldborder: true
+        overrideWorldBorderSettings: true
         shape: ELLIPTICAL
         x-radius: 5000
         z-radius: 5000
