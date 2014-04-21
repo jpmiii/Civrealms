@@ -2,7 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/home/jim/Downloads/spigot-1.7.2-R0.3-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="/home/jim/Downloads/Vault.jar"/>
+	<classpathentry kind="lib" path="libs/spigot-1.7.2-R0.3.jar"/>
+	<classpathentry kind="lib" path="libs/Vault.jar"/>
+	<classpathentry kind="lib" path="libs/WorldBorder.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
