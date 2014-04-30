@@ -14,6 +14,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Damageable;
@@ -23,6 +24,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
@@ -192,6 +194,19 @@ public class Civrealms extends JavaPlugin implements Listener {
 		}
 
 	}
+	
+	
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void firstjoin(PlayerJoinEvent event) {
+		if (!event.getPlayer().hasPlayedBefore()) {
+			event.getPlayer().getInventory().setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
+			event.getPlayer().getInventory().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS, 1));
+			event.getPlayer().getInventory().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE, 1));
+			event.getPlayer().getInventory().setHelmet(new ItemStack(Material.LEATHER_HELMET, 1));
+		}
+		
+	}
+	
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void spawnmove(PlayerRespawnEvent event) {
