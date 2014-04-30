@@ -199,10 +199,23 @@ public class Civrealms extends JavaPlugin implements Listener {
 			Location curloc = event.getRespawnLocation();
 			boolean look = true;
 			int lookcount = 0;
+			World wld = getServer().getWorld(this.getConfig().getString("worldName"));
 			while (look) {
-				World wld = getServer().getWorld(this.getConfig().getString("worldName"));
-				Integer xloc = ((int) (Math.random() * 200 - 100 + curloc.getX()));
-				Integer zloc = ((int) (Math.random() * 200 - 100 + curloc.getZ()));
+				
+				Integer xloc = ((int) (Math.random() * 230 - 100 + curloc.getX()));
+				if (xloc > 2200){
+					xloc = xloc - 3400;
+				}
+				if (xloc < -1200){
+					xloc = xloc + 3400;
+				}
+				Integer zloc = ((int) (Math.random() * 300 - 100 + curloc.getZ()));
+				if (zloc < -2400){
+					zloc = zloc + 6000;
+				}
+				if (zloc > 3600){
+					zloc = zloc - 6000;
+				}
 				Integer yloc = wld.getHighestBlockYAt(xloc, zloc);
 				if ((wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.GRASS)
 						|| (wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.SAND)) {

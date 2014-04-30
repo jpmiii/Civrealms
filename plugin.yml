@@ -2,7 +2,6 @@ name: Civrealms
 main: com.jpmiii.Civrealms.Civrealms
 version: 0.1.2
 depend: [Vault]
-prefix: CivRealms
 commands:
    civ:
       description: reloads config
