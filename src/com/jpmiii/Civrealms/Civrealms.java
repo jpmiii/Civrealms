@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -155,6 +156,33 @@ public class Civrealms extends JavaPlugin implements Listener {
 		}
 	}
 
+	
+	
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void changeBlockDropEvent(BlockBreakEvent event) {
+		if (event.getBlock().getType() == Material.PACKED_ICE) {
+			event.getBlock().setType(Material.AIR);
+			event.getBlock()
+					.getWorld()
+					.dropItem(event.getBlock().getLocation(),
+							new ItemStack(Material.PACKED_ICE, 1));
+			event.setCancelled(true);
+		}
+		if (event.getBlock().getType() == Material.ICE) {
+			event.getBlock().setType(Material.AIR);
+			event.getBlock()
+					.getWorld()
+					.dropItem(event.getBlock().getLocation(),
+							new ItemStack(Material.ICE, 1));
+			event.setCancelled(true);
+		}
+		
+
+	}
+	
+	
+	
+	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void orefix(ChunkLoadEvent event) {
 
