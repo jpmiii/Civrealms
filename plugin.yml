@@ -1,6 +1,6 @@
 name: Civrealms
 main: com.jpmiii.Civrealms.Civrealms
-version: 0.1.2
+version: 0.3.0
 depend: [Vault]
 commands:
    civ:
@@ -9,5 +9,9 @@ commands:
       permission-message: you cant do that
    jjail:
       description: sets jail loc
-      usage: /jjail jailname
+      usage: /jjail <jail name>
+      permission-message: you cant do that
+   bad:
+      description: bans player if less that a day old
+      usage: /bad <player name>
       permission-message: you cant do that

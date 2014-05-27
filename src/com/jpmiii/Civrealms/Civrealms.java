@@ -18,14 +18,18 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Damageable;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
@@ -34,13 +38,12 @@ import org.bukkit.plugin.Plugin;
 //import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.jpmiii.Civrealms.CivrealmsTask;
-import com.psygate.sprawn.SprawnListener;
-import com.psygate.sprawn.settings.SettingsLoader;
-import com.psygate.sprawn.settings.WorldSetting;
-import com.wimbli.WorldBorder.WorldBorder;
+
+
 
 import net.milkbowl.vault.permission.Permission;
 
@@ -49,6 +52,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 	public Map<String, Object> jailList = new HashMap<String, Object>();
 	public Map<String, Object> jailPlayers = new HashMap<String, Object>();
 	BukkitTask gentask = null;
+
 
 	public void onEnable() {
 		// getLogger().info("onEnable has been invoked!");
@@ -75,22 +79,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 		 * }
 		 */
 
-		if (getConfig().getBoolean("sprawn-enabled")) {
-			System.out.println("Sprawn enabled.");
-			Plugin pl = getServer().getPluginManager().getPlugin("WorldBorder");
-			SprawnListener lis;
-			if (pl != null && pl instanceof WorldBorder) {
-				log("[+] Worldborder found. Using world border settings.");
-				WorldBorder b = (WorldBorder) pl;
-				lis = new SprawnListener(b);
-			} else {
-				lis = new SprawnListener();
-			}
 
-			List<WorldSetting> settings = SettingsLoader.loadConfiguration(this);
-			lis.setSettings(settings);
-			getServer().getPluginManager().registerEvents(lis, this);
-		}
 
 	}
 
@@ -99,6 +88,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 		perms = rsp.getProvider();
 		return perms != null;
 	}
+
 
 	public void onDisable() {
 
@@ -115,7 +105,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 				// this.getLogger().info("ptest");
 
 				ItemStack inhand = ((Player) event.getDamager()).getItemInHand();
-				if (inhand.hasItemMeta()) {
+				if (inhand.hasItemMeta() && !inhand.getItemMeta().getDisplayName().isEmpty()) {
 					String iname = inhand.getItemMeta().getDisplayName().toLowerCase();
 					// this.getLogger().info(iname);
 					Location jloc = null;
@@ -156,7 +146,41 @@ public class Civrealms extends JavaPlugin implements Listener {
 		}
 	}
 
-	
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void arrowDamage(EntityDamageEvent event) {
+
+		if (event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) {
+			if (event.isCancelled() || (event.getDamage() == 0)) {
+				return;
+			}
+			
+
+			if (event instanceof EntityDamageByEntityEvent) {
+				EntityDamageByEntityEvent e = (EntityDamageByEntityEvent) event;
+				
+				if (e.getEntityType() == EntityType.PLAYER) {
+					Player target = (Player) e.getEntity();
+					Entity dmgr = e.getDamager();
+
+					if (dmgr instanceof Projectile) {
+						
+						ProjectileSource dmgrplayer = ((Projectile) dmgr)
+								.getShooter();
+						if (dmgrplayer instanceof Player) {
+							
+							double heightdiff = ((Player) dmgrplayer).getLocation().getY() - target.getLocation().getY();
+							
+							if (heightdiff > 3) {
+								
+								event.setDamage(event.getDamage() + heightdiff - 3.0);
+								
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void changeBlockDropEvent(BlockBreakEvent event) {
@@ -184,60 +208,27 @@ public class Civrealms extends JavaPlugin implements Listener {
 	
 	
 	@EventHandler(priority = EventPriority.MONITOR)
-	public void orefix(ChunkLoadEvent event) {
-
-		if (event.getWorld().getName().equalsIgnoreCase("world") && (event.getChunk().getZ() > -218)) {
-			if (!event.isNewChunk()) {
-				if (event.getChunk().getBlock(1, 6, 2).getType() != Material.BEDROCK) {
-					// makeVein(Chunk, lowest_y, highest_y, blocks_in_vein,
-					// Material)
-
-					this.makeVein(event.getChunk(), 7, 15, ((int) (Math.random() * 3 + 1)), Material.DIAMOND_ORE);
-					this.makeVein(event.getChunk(), 7, 47, ((int) (Math.random() * 8 + 1)), Material.GOLD_ORE);
-					this.makeVein(event.getChunk(), 20, 40, ((int) (Math.random() * 5 + 1)), Material.LAPIS_ORE);
-					this.makeVein(event.getChunk(), 7, 16, ((int) (Math.random() * 3 + 1)), Material.LAPIS_ORE);
-
-					event.getChunk().getBlock(1, 6, 2).setType(Material.BEDROCK);
-				}
-			}
-		}
-		if (event.getWorld().getName().equalsIgnoreCase("world_nether")) {
-			if (!event.isNewChunk()) {
-				if (event.getChunk().getBlock(1, 6, 2).getType() == Material.BEDROCK) {
-					for (int x = 0; x < 16; x++) {
-						for (int y = 7; y < 47; y++) {
-							for (int z = 0; z < 16; z++) {
-								if ((event.getChunk().getBlock(x, y, z).getType() == Material.DIAMOND_ORE)
-										|| (event.getChunk().getBlock(x, y, z).getType() == Material.GOLD_ORE)
-										|| (event.getChunk().getBlock(x, y, z).getType() == Material.LAPIS_ORE)) {
-									event.getChunk().getBlock(x, y, z).setType(Material.AIR);
-								}
-							}
-						}
-					}
-
-					event.getChunk().getBlock(1, 6, 2).setType(Material.NETHER_BRICK);
-				}
-			}
-		}
-
-	}
-	
-	
-	@EventHandler(priority = EventPriority.MONITOR)
 	public void firstjoin(PlayerJoinEvent event) {
 		if (!event.getPlayer().hasPlayedBefore()) {
 			event.getPlayer().getInventory().setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
 			event.getPlayer().getInventory().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS, 1));
 			event.getPlayer().getInventory().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE, 1));
 			event.getPlayer().getInventory().setHelmet(new ItemStack(Material.LEATHER_HELMET, 1));
+			this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "kit start ".concat(event.getPlayer().getName()) );
 		}
 		
+		
 	}
-	
+	/*
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void quit(PlayerQuitEvent event) {
+		combatApi.tagPlayer(event.getPlayer());
+	}
+	*/
 
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void spawnmove(PlayerRespawnEvent event) {
+		
 		if (!event.isBedSpawn()) {
 			Location curloc = event.getRespawnLocation();
 			boolean look = true;
@@ -261,7 +252,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 				}
 				Integer yloc = wld.getHighestBlockYAt(xloc, zloc);
 				if ((wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.GRASS)
-						|| (wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.SAND)) {
+						|| (wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.SAND) || (wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.HARD_CLAY)) {
 					look = false;
 					wld.setSpawnLocation(xloc, yloc, zloc);
 					this.getLogger().info(
@@ -354,6 +345,35 @@ public class Civrealms extends JavaPlugin implements Listener {
 			}
 
 		}
+		if (cmd.getName().equalsIgnoreCase("bad")) {
+			if (!(sender instanceof Player)) {
+
+				return true;
+			}
+			Player player = (Player) sender;
+			if (player.hasPermission("civ.ban")) {
+				if (args.length > 0) {
+					OfflinePlayer targ = this.getServer().getOfflinePlayer(
+							args[0]);
+					if (targ.getFirstPlayed() + 86400000 > System
+							.currentTimeMillis()) {
+						targ.setBanned(true);
+						if (targ.isOnline()) {
+							targ.getPlayer().kickPlayer("banned");
+							
+						}
+						player.sendMessage(args[0] + " banned");
+
+					} else {
+						player.sendMessage(args[0] + " too old");
+					}
+					return true;
+					
+				}
+			}
+
+			
+		}
 
 		if (cmd.getName().equalsIgnoreCase("civ")) {
 			// doSomething
@@ -414,85 +434,4 @@ public class Civrealms extends JavaPlugin implements Listener {
 		return false;
 	}
 
-	private int[] startVein(Chunk c, int bot, int top) {
-		int v[] = new int[] { -1, -1, -1 };
-		int tries = 0;
-		while (tries < 100) {
-			tries++;
-			int xa = (int) (Math.random() * 16);
-			int za = (int) (Math.random() * 16);
-			int ya = (int) ((Math.random() * (top - bot + 1)) + bot);
-			if (c.getBlock(xa, ya, za).getType() == Material.STONE || c.getBlock(xa, ya, za).getType() == Material.AIR) {
-				v[0] = xa;
-				v[1] = ya;
-				v[2] = za;
-				tries = 111;
-
-			}
-
-		}
-
-		return v;
-
-	}
-
-	private int makeVein(Chunk c, int bottom, int top, int num, Material typ) {
-		int[] v = this.startVein(c, bottom, top);
-		int tot = 0;
-		if (v[0] >= 0) {
-			tot = 1;
-			int tries = 0;
-			c.getBlock(v[0], v[1], v[2]).setType(typ);
-			while ((tot < num) && (tries < 100)) {
-				tries++;
-				int[] v2 = this.randMove(v);
-				if (((c.getBlock(v2[0], v2[1], v2[2]).getType() == Material.STONE) || (c.getBlock(v2[0], v2[1], v2[2])
-						.getType() == Material.AIR))
-						&& (v2[0] >= 0)
-						&& (v2[1] >= bottom)
-						&& (v2[2] >= 0)
-						&& (v2[0] < 16) && (v2[1] <= top) && (v2[2] < 16)) {
-					c.getBlock(v2[0], v2[1], v2[2]).setType(typ);
-					tot++;
-				} else {
-					v = this.randMove(v);
-				}
-
-			}
-
-		}
-
-		return tot;
-
-	}
-
-	private int[] randMove(int[] v) {
-		int d = 0;
-		if (Math.random() > 0.5) {
-			d = 1;
-		} else {
-			d = -1;
-		}
-		double rnd = Math.random();
-		if (rnd < 0.33) {
-			v[0] = v[0] + d;
-		} else if (rnd < 0.66) {
-			v[1] = v[1] + d;
-		} else {
-			v[2] = v[2] + d;
-		}
-		return v;
-
-	}
-
-	public static void log(Object... objs) {
-		String out = "[Sprawn]";
-
-		System.out.println(out + Arrays.toString(objs));
-	}
-
-	public static void errlog(Object... objs) {
-		String out = "[Sprawn]";
-		System.err.print(out + Arrays.toString(objs));
-	}
 }

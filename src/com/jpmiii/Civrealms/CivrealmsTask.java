@@ -18,7 +18,7 @@ public class CivrealmsTask extends BukkitRunnable {
 		for (Player ply : plugin.getServer()
 				.getWorld(plugin.getConfig().getString("worldName"))
 				.getPlayers()) {
-			if (!plugin.perms.has(ply, "civrealms.nofollow") && !ply.hasMetadata("NPC")){
+			if (!plugin.perms.has(ply, "civrealms.nofollow")){
 				plugin.getLogger().info(ply.getDisplayName() + ply.getLocation().toString());
 			}
 			
