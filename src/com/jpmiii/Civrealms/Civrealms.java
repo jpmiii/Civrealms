@@ -185,7 +185,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.HIGH)
 	public void changeBlockDropEvent(BlockBreakEvent event) {
 		if (event.getBlock().getType() == Material.PACKED_ICE) {
 			event.getBlock().setType(Material.AIR);
