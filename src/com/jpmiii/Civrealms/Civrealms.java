@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -15,6 +16,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Damageable;
@@ -52,6 +54,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 	public Map<String, Object> jailList = new HashMap<String, Object>();
 	public Map<String, Object> jailPlayers = new HashMap<String, Object>();
 	BukkitTask gentask = null;
+	Random rand = new Random();
 
 
 	public void onEnable() {
@@ -236,14 +239,14 @@ public class Civrealms extends JavaPlugin implements Listener {
 			World wld = getServer().getWorld(this.getConfig().getString("worldName"));
 			while (look) {
 				
-				Integer xloc = ((int) (Math.random() * 230 - 100 + curloc.getX()));
+				Integer xloc = ((int) (rand.nextInt(230) - 100 + curloc.getX()));
 				if (xloc > 2200){
 					xloc = xloc - 3400;
 				}
 				if (xloc < -1200){
 					xloc = xloc + 3400;
 				}
-				Integer zloc = ((int) (Math.random() * 300 - 100 + curloc.getZ()));
+				Integer zloc = ((int) (rand.nextInt(300) - 100 + curloc.getZ()));
 				if (zloc < -2400){
 					zloc = zloc + 6000;
 				}
@@ -251,8 +254,9 @@ public class Civrealms extends JavaPlugin implements Listener {
 					zloc = zloc - 6000;
 				}
 				Integer yloc = wld.getHighestBlockYAt(xloc, zloc);
-				if ((wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.GRASS)
-						|| (wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.SAND) || (wld.getBlockAt(xloc, (yloc - 1), zloc).getType() == Material.HARD_CLAY)) {
+				Material mat = wld.getBlockAt(xloc, (yloc - 1), zloc).getType();
+				
+				if ((mat == Material.GRASS)	|| (mat == Material.SAND) || (mat == Material.HARD_CLAY)) {
 					look = false;
 					wld.setSpawnLocation(xloc, yloc, zloc);
 					this.getLogger().info(
