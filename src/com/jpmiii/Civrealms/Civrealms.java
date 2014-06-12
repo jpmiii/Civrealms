@@ -149,7 +149,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.HIGH)
 	public void arrowDamage(EntityDamageEvent event) {
 
 		if (event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) {
@@ -210,7 +210,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 	
 	
 	
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.HIGH)
 	public void firstjoin(PlayerJoinEvent event) {
 		if (!event.getPlayer().hasPlayedBefore()) {
 			event.getPlayer().getInventory().setBoots(new ItemStack(Material.LEATHER_BOOTS, 1));
@@ -229,7 +229,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 	}
 	*/
 
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.HIGH)
 	public void spawnmove(PlayerRespawnEvent event) {
 		
 		if (!event.isBedSpawn()) {
