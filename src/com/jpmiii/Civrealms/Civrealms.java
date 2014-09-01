@@ -1,4 +1,5 @@
 package com.jpmiii.Civrealms;
+//
 
 //import java.util.Iterator;
 
@@ -16,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -28,8 +30,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -40,10 +44,18 @@ import org.bukkit.plugin.Plugin;
 //import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.jpmiii.Civrealms.CivrealmsTask;
+
+
+
+
+
+
 
 
 
@@ -66,7 +78,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 		jailPlayers = this.getConfig().getConfigurationSection("jailPlayers").getValues(false);
 		getServer().getPluginManager().registerEvents(this, this);
 		setupPermissions();
-		BukkitTask t = new CivrealmsTask(this).runTaskTimer(this, 6000, 6000);
+		BukkitTask t = new CivrealmsTask(this).runTaskTimer(this, 2400, 2400);
 
 		/*
 		 * 
@@ -97,7 +109,12 @@ public class Civrealms extends JavaPlugin implements Listener {
 
 		getLogger().info("onDisable has been invoked!");
 	}
-
+	@EventHandler(priority = EventPriority.HIGH)
+	public void beer(EnchantItemEvent event) {
+		if (event.getEnchantBlock().getType() == Material.ANVIL) {
+			
+		}
+	}
 	@EventHandler(priority = EventPriority.HIGH)
 	public void jail(EntityDamageByEntityEvent event) {
 		if ((event.getEntityType() == EntityType.PLAYER) && (event.getDamager().getType() == EntityType.PLAYER)
@@ -152,33 +169,47 @@ public class Civrealms extends JavaPlugin implements Listener {
 	@EventHandler(priority = EventPriority.HIGH)
 	public void arrowDamage(EntityDamageEvent event) {
 
-		if (event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) {
-			if (event.isCancelled() || (event.getDamage() == 0)) {
-				return;
-			}
-			
+		if (event.isCancelled() || (event.getDamage() == 0)) {
+			return;
+		}
 
-			if (event instanceof EntityDamageByEntityEvent) {
-				EntityDamageByEntityEvent e = (EntityDamageByEntityEvent) event;
+		if (event instanceof EntityDamageByEntityEvent) {
+			EntityDamageByEntityEvent e = (EntityDamageByEntityEvent) event;
+
+			if (e.getEntityType() == EntityType.PLAYER) {
+				Player target = (Player) e.getEntity();
+				Entity dmgr = e.getDamager();
+				double dmg = event.getDamage();
+
 				
-				if (e.getEntityType() == EntityType.PLAYER) {
-					Player target = (Player) e.getEntity();
-					Entity dmgr = e.getDamager();
-
-					if (dmgr instanceof Projectile) {
+				if (dmgr instanceof Player) {
+					if (!((Player)dmgr).hasPermission("civ.fulldamage")) {
+						event.setDamage(dmg*.1);
+					}
 						
-						ProjectileSource dmgrplayer = ((Projectile) dmgr)
-								.getShooter();
-						if (dmgrplayer instanceof Player) {
-							
-							double heightdiff = ((Player) dmgrplayer).getLocation().getY() - target.getLocation().getY();
-							
-							if (heightdiff > 3) {
-								
-								event.setDamage(event.getDamage() + heightdiff - 3.0);
-								
-							}
+				}
+
+				if (dmgr instanceof Projectile) {
+
+					ProjectileSource dmgrplayer = ((Projectile) dmgr).getShooter();
+					if (dmgrplayer instanceof Player) {
+					double heightdiff = ((Player) dmgrplayer).getLocation()
+								.getY() - target.getLocation().getY();
+
+						if (heightdiff > 3) {
+
+							dmg = dmg + heightdiff
+									- 3.0;
+
 						}
+						
+						if (!((Player)dmgrplayer).hasPermission("civ.fulldamage")) {
+							dmg = dmg*.1;
+							
+						}
+
+
+						event.setDamage(dmg);
 					}
 				}
 			}
@@ -218,6 +249,8 @@ public class Civrealms extends JavaPlugin implements Listener {
 			event.getPlayer().getInventory().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE, 1));
 			event.getPlayer().getInventory().setHelmet(new ItemStack(Material.LEATHER_HELMET, 1));
 			this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "kit start ".concat(event.getPlayer().getName()) );
+			this.getServer().broadcastMessage("new player: ".concat(event.getPlayer().getName()) );
+			//event.getPlayer().teleport(new Location(this.getServer().getWorld("world"),2517.0,74.0,2637.0));
 		}
 		
 		
@@ -227,7 +260,20 @@ public class Civrealms extends JavaPlugin implements Listener {
 	public void quit(PlayerQuitEvent event) {
 		combatApi.tagPlayer(event.getPlayer());
 	}
-	*/
+*/	
+	@EventHandler(priority = EventPriority.HIGH)
+	public void magigpotion(PlayerItemConsumeEvent event) {
+		ItemStack itst = event.getItem();
+		
+		if (itst.getType() == Material.POTION && itst.hasItemMeta()) {
+			if (itst.getItemMeta().hasDisplayName()) {
+				//event.setItem(new ItemStack(Material.GLASS_BOTTLE, 1));
+				this.getLogger().info("named potion drank");
+				event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION,1200,1));
+			}
+		}
+		
+	}
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void spawnmove(PlayerRespawnEvent event) {
@@ -349,6 +395,11 @@ public class Civrealms extends JavaPlugin implements Listener {
 			}
 
 		}
+		if (cmd.getName().equalsIgnoreCase("biol")) {
+			for (Biome b: Biome.values()) {
+				this.getLogger().info(b.name());
+			}
+		}
 		if (cmd.getName().equalsIgnoreCase("bad")) {
 			if (!(sender instanceof Player)) {
 
@@ -357,11 +408,10 @@ public class Civrealms extends JavaPlugin implements Listener {
 			Player player = (Player) sender;
 			if (player.hasPermission("civ.ban")) {
 				if (args.length > 0) {
-					OfflinePlayer targ = this.getServer().getOfflinePlayer(
+					Player targ = this.getServer().getPlayer(
 							args[0]);
-					if (targ.getFirstPlayed() + 86400000 > System
-							.currentTimeMillis()) {
-						targ.setBanned(true);
+					if (!targ.hasPermission("civ.unban")) {
+						targ.setBanned(true);;
 						if (targ.isOnline()) {
 							targ.getPlayer().kickPlayer("banned");
 							

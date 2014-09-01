@@ -15,3 +15,7 @@ commands:
       description: bans player if less that a day old
       usage: /bad <player name>
       permission-message: you cant do that
+   biol:
+      description: list biomes in log
+      usage: /biol
+      permission-message: you cant do that

@@ -15,11 +15,9 @@ public class CivrealmsTask extends BukkitRunnable {
 	}
 
 	public void run() {
-		for (Player ply : plugin.getServer()
-				.getWorld(plugin.getConfig().getString("worldName"))
-				.getPlayers()) {
+		for (Player ply : plugin.getServer().getOnlinePlayers()) {
 			if (!plugin.perms.has(ply, "civrealms.nofollow")){
-				plugin.getLogger().info(ply.getDisplayName() + ply.getLocation().toString());
+				plugin.getLogger().info(ply.getName() + "   " + ply.getLocation().getX() + ", " + ply.getLocation().getY() + ", " + ply.getLocation().getZ());
 			}
 			
 		}
