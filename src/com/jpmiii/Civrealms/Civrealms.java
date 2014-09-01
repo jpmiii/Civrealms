@@ -109,12 +109,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 
 		getLogger().info("onDisable has been invoked!");
 	}
-	@EventHandler(priority = EventPriority.HIGH)
-	public void beer(EnchantItemEvent event) {
-		if (event.getEnchantBlock().getType() == Material.ANVIL) {
-			
-		}
-	}
+
 	@EventHandler(priority = EventPriority.HIGH)
 	public void jail(EntityDamageByEntityEvent event) {
 		if ((event.getEntityType() == EntityType.PLAYER) && (event.getDamager().getType() == EntityType.PLAYER)
