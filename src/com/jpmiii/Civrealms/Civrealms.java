@@ -7,14 +7,17 @@ package com.jpmiii.Civrealms;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Biome;
@@ -29,16 +32,21 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.Plugin;
 //import org.bukkit.inventory.ItemStack;
 //import org.bukkit.inventory.Recipe;
@@ -50,6 +58,14 @@ import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.jpmiii.Civrealms.CivrealmsTask;
+
+
+
+
+
+
+
+
 
 
 
@@ -81,19 +97,30 @@ public class Civrealms extends JavaPlugin implements Listener {
 		BukkitTask t = new CivrealmsTask(this).runTaskTimer(this, 2400, 2400);
 
 		/*
-		 * 
-		 * final Iterator<Recipe> recipes = getServer().recipeIterator(); Recipe
-		 * recipe; ItemStack result;
-		 * 
-		 * while (recipes.hasNext()) { if ((recipe = recipes.next()) == null)
-		 * continue;
-		 * 
-		 * if ((result = recipe.getResult()) == null) continue;
-		 * 
-		 * if (result.getType() == Material.ENCHANTMENT_TABLE) recipes.remove();
-		 * }
-		 */
+		final Iterator<Recipe> recipes = getServer().recipeIterator();
+		Recipe recipe;
+		ItemStack result;
 
+		while (recipes.hasNext()) {
+			if ((recipe = recipes.next()) == null)
+				continue;
+
+			if ((result = recipe.getResult()) == null)
+				continue;
+
+			if (result.getType() == Material.GOLDEN_CARROT)
+				recipes.remove();
+		}
+		*/
+
+		ShapedRecipe recipe1 = new ShapedRecipe(new ItemStack(Material.GOLDEN_CARROT,
+				1));
+		recipe1.shape("BBB", "BAB", "BBB");
+		recipe1.setIngredient('A', Material.GOLD_NUGGET);
+		recipe1.setIngredient('B', Material.COBBLESTONE);
+
+		getServer().addRecipe(recipe1);
+		
 
 
 	}
@@ -312,7 +339,40 @@ public class Civrealms extends JavaPlugin implements Listener {
 
 		}
 	}
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onItemUse(PlayerInteractEvent event)
+	{
 
+	    Block block = event.getClickedBlock();
+	    if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.hasItem() && block.getType() == Material.JUKEBOX)
+	    {
+	        Material material = event.getItem().getType();
+	        if(material == Material.GOLD_RECORD)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2256);
+	        else if(material == Material.GREEN_RECORD)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2257);
+	        else if(material == Material.RECORD_3)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2258);
+	        else if(material == Material.RECORD_4)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2259);
+	        else if(material == Material.RECORD_5)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2260);
+	        else if(material == Material.RECORD_6)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2261);
+	        else if(material == Material.RECORD_7)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2262);
+	        else if(material == Material.RECORD_8)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2263);
+	        else if(material == Material.RECORD_9)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2264);
+	        else if(material == Material.RECORD_10)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2265);
+	        else if(material == Material.RECORD_11)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2266);
+	        else if(material == Material.RECORD_12)
+	            block.getWorld().playEffect(block.getLocation(), Effect.RECORD_PLAY, 2267);
+	    }
+	}
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("jjail")) {
 			if (!(sender instanceof Player)) {
@@ -406,7 +466,7 @@ public class Civrealms extends JavaPlugin implements Listener {
 					Player targ = this.getServer().getPlayer(
 							args[0]);
 					if (!targ.hasPermission("civ.unban")) {
-						targ.setBanned(true);;
+						targ.setBanned(true);
 						if (targ.isOnline()) {
 							targ.getPlayer().kickPlayer("banned");
 							
@@ -414,11 +474,14 @@ public class Civrealms extends JavaPlugin implements Listener {
 						player.sendMessage(args[0] + " banned");
 
 					} else {
-						player.sendMessage(args[0] + " too old");
+						player.sendMessage(args[0] + " is registered");
 					}
 					return true;
 					
 				}
+			} else {
+				player.sendMessage("Not enough permission");
+				return true;
 			}
 
 			
